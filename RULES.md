@@ -12,7 +12,7 @@ Her dil dizininde bir `README.md` bulunur ve o dizindeki konu dosyalarını tek 
 
 ## Not kalıbı
 
-Her kavram üçüncü seviye başlıkla açılır ve dört parçadan oluşur. Başlık kavramın mülakatta geçen adıdır, özet iki ile dört cümlelik bir paragraftır, kod örneği kavramı gösteren en kısa parçadır ve tuzak satırı o kavramda en sık verilen yanlış cevabı söyler.
+Her kavram üçüncü seviye başlıkla açılır ve dört parçadan oluşur. Başlık kavramın yaygın teknik adıdır, özet kavramın mantığını ve arkasındaki mekanizmayı anlatan iki ile dört cümlelik bir paragraftır, kod örneği kavramı gösteren en kısa parçadır ve uç durum satırı o kavramda gözden kaçabilecek veya beklenmedik davranış üreten kritik teknik sınırı söyler.
 
 ~~~markdown
 ### RAII
@@ -25,18 +25,18 @@ std::lock_guard<std::mutex> g(m);  // kilit alındı
 // kapsam biterse kilit otomatik bırakılır
 ```
 
-Tuzak: `new` ve `delete` çifti elle yazılırsa aradaki `throw` sızıntı üretir.
+Uç durum: `new` ve `delete` çifti elle yazılırsa aradaki `throw` sızıntı üretir.
 ~~~
 
-Özet paragrafı kavramın ne olduğunu ve neden var olduğunu söyler, tarihçesini anlatmaz. Dört cümleyi aşan bir özet, kavramın ikiye bölünmesi gerektiğinin işaretidir.
+Özet paragrafı kavramın ne olduğunu, iç mekanizmasını ve neden var olduğunu söyler; tarihçesini anlatmaz. Dört cümleyi aşan bir özet, kavramın ikiye bölünmesi gerektiğinin işaretidir.
 
-Kod örneği beş ile on beş satır arasında kalır ve kavramı anlatan satırlar dışında hiçbir şey içermez. Başlık dosyaları, `main` gövdesi ve hata kontrolü gibi parçalar örneği uzatıyorsa yazılmaz. Kavram kodla değil yalnızca sözle anlatılabiliyorsa kod bloğu tamamen atlanır.
+Kod örneği beş ile on beş satır arasında kalır ve kavramı anlatan satırlar dışında hiçbir şey içermez. Başlık dosyaları, `main` gövdesi ve hata tetkiki gibi parçalar örneği uzatıyorsa yazılmaz. Kod içindeki yorum satırlarında Türkçe karakterler (ç, ğ, ı, ö, ş, ü) eksiksiz kullanılır. Kavram kodla değil yalnızca sözle anlatılabiliyorsa kod bloğu tamamen atlanır.
 
-Tuzak satırı zorunludur ve her zaman `Tuzak:` ile başlar. Tek cümledir, kavramın yanlış hatırlanan yüzünü söyler. Bu satır notun mülakat değerini taşıyan parçasıdır; özet unutulsa bile tuzak akılda kalır.
+Uç durum satırı zorunludur ve her zaman `Uç durum:` ile başlar. Tek cümledir, kavramın gözden kaçan veya sıra dışı davranış sergileyen kritik teknik sınırını söyler.
 
-## Terim kullanımı
+## Terim ve dil kullanımı
 
-Standart İngilizce terimler doğrudan yazılır. `move semantics`, `vtable`, `undefined behavior` gibi ifadelerin karşısına parantez içinde Türkçe çeviri konmaz, aynı şekilde Türkçe bir terimin yanına parantezle İngilizcesi eklenmez. Anlatım Türkçedir, terimler İngilizce kaldığı yerde İngilizce kalır.
+Anlatım Türkçedir ve kod içi yorum satırları dahil Türkçe karakterler (ç, ğ, ı, ö, ş, ü) eksiksiz kullanılır. Terim tercihleri ve çevrilmeyecek standart İngilizce kavramlar için kökteki [SOZLUK.md](./SOZLUK.md) belgesi esas alınır.
 
 Anlatımda numaralandırılmış listelerden ve yoğun madde işaretlerinden kaçınılır. Paragraf akışı tercih edilir; sıralamanın kendisi bilgi taşıyorsa, örneğin derleme aşamaları anlatılıyorsa, liste kullanılabilir.
 
