@@ -7,6 +7,23 @@ Optimizasyon seviyesini `-O2`'den `-O3`'e çıkarmak her zaman daha hızlı bir 
 | `-O2` | Kod boyutunu makul tutar, dengeli hızlandırır | Döngüleri tam açmadığı ve vektörleştirmediği için tepe verime ulaşamaz |
 | `-O3` | Kod boyutunu umursamadan döngü ve hesaplama hızını kovalar | I-cache taşması, register spilling, küçük veride kurulum maliyeti |
 
+### Instruction Cache (I-Cache)
+
+İşlemcinin çalıştıracağı makine kodu komutlarını ana bellek yerine çekirdeğe en yakın L1 seviyesinde tutan donanımsal önbellektir. L1 önbellek veri (D-Cache) ve komut (I-Cache) olarak ikiye ayrılır; aranan komut önbellekteyse hit oluşur ve döngü gecikmesi yaşanmaz, bulunamadığında ise miss meydana gelir ve işlemci komut L2, L3 veya RAM'den getirilene kadar duraklar (stall). C++ doğrudan makine koduna derlendiği için aşırı inlining, kontrolsüz loop unrolling ve sanal fonksiyonların vtable üzerinden dolaylı atlamaları kod boyutunu şişirerek veya dağınık yerleşim oluşturarak I-Cache verimini düşürür. `[[likely]]` / `[[unlikely]]` nitelikleri, PGO ve LTO optimizasyonları sık çalışan sıcak kod bloklarını bellekte ardışık dizerek I-Cache yerelliğini korur.
+
+```cpp
+// Sıcak kod yolunu düz hatta tutup soğuk hata bloğunu uzağa taşımak I-cache'i korur
+bool process_data(const char *buffer, size_t len) {
+    if (buffer == nullptr) [[unlikely]] {
+        log_critical_error();  // soğuk blok: uzağa taşınır, I-cache'i gereksiz işgal etmez
+        return false;
+    }
+    return fast_path_parse(buffer, len);  // sıcak blok: ardışık dizilir
+}
+```
+
+Uç durum: Aşırı satır içi genişletme (inlining) ve kontrolsüz döngü açma (loop unrolling), çağrı ve dallanma maliyetini düşürmeyi hedeflerken üretilen ikili dosya boyutunu (code bloat) I-Cache kapasitesinin üzerine çıkarıp sık miss gecikmelerine yol açar.
+
 ### Instruction Cache Baskısı ve Döngü Açma
 
 Döngü açma (loop unrolling), döngü gövdesini birden çok kez arka arkaya yazarak sayaç artırma ve dallanma maliyetinden kurtulmayı amaçlar. Bunun karşılığında üretilen makine kodu birkaç katına çıkar ve işlemcinin L1 komut önbelleğinde (Instruction Cache) daha fazla yer kaplar. Sık çağrılan küçük bir fonksiyonun döngüsü tümüyle açıldığında komutlar bu önbelleğe sığmaz; her çağrıda önbellekten atılıp yeniden yüklenirler (cache thrashing) ve işlemci komutun gelmesini bekler.
