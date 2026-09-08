@@ -87,3 +87,18 @@ if constexpr (HizliAlgoritmaKullan) {
 ```
 
 Uç durum: `if constexpr` bloğunun çalışmayan dalındaki kod derlenmese bile sözdizimsel olarak geçerli olmak zorundadır; geçersiz bir ifade derleme hatasına yol açar.
+
+### --whole-archive
+
+Bağlayıcıya, belirtilen statik kütüphanedeki tüm nesne dosyalarını (`.o`) dışarıdan doğrudan sembol referansı olmasa dahi nihai ikiliye zorla dahil etmesini bildirir. Standart bağlayıcı davranışı, statik kütüphaneden yalnızca doğrudan çağrılan sembollerin dosyalarını çekip referans verilmeyen dosyaları ölü kod elemesiyle (dead-code elimination) tamamen ayıklar. Dosya içi anonim alanda statik değişkenle çalışan self-registration mekanizmaları bu bayrak olmadan statik kütüphaneye alındığında elenir.
+
+```cpp
+// CMakeLists.txt veya bağlayıcı komutu:
+// g++ main.o -Wl,--whole-archive -lEklentiler -Wl,--no-whole-archive -o uygulama
+target_link_libraries(uygulama PRIVATE
+    -Wl,--whole-archive Eklentiler -Wl,--no-whole-archive
+)
+// Modern CMake (3.24+): target_link_libraries(uygulama PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,Eklentiler>")
+```
+
+Uç durum: `--whole-archive` sonrasında `--no-whole-archive` bayrağı ile normal tarama moduna dönülmezse sonraki tüm kütüphaneler de gereksiz yere bütünüyle ikiliye gömülerek dosya boyutunu ve çakışma riskini artırır.
