@@ -78,3 +78,88 @@ for (int j = 0; j < sutun; ++j) {
 ```
 
 Uç durum: Yazılımsal pre-fetch komutları donanımsal ön yükleyicinin tahminiyle uyuşmadığında boşuna bellek bant genişliği harcanır ve hâlâ kullanımda olan faydalı veriler önbellekten atılır.
+
+### `-O0`
+
+Varsayılan seviyedir ve hiçbir optimizasyon açmaz. Her değişken yığında tutulur, her ifade kaynaktaki sırayla çalışır, hiçbir fonksiyon inline edilmez. Bu yüzden derleme hızlıdır ve debugger'da görülen durum kaynak kodla birebir örtüşür.
+
+Uç durum: `-O0`'da çalışıp `-O2`'de bozulan kod optimizasyon hatası değildir; neredeyse her zaman undefined behavior'ın gizlenmiş olmasıdır.
+
+### `-O1`
+
+Derleme süresini fazla uzatmayan, tek fonksiyon içinde biten ucuz dönüşümleri açar. Amaç tepe verim değil, `-O0`'ın ürettiği gereksiz yükü temizlemektir.
+
+| Bayrak | Ne yapar |
+| :--- | :--- |
+| `-fdce`, `-fdse` | dead code ve dead store elimination: sonucu kullanılmayan hesap ve yazma silinir |
+| `-ftree-ccp` | constant propagation: derleme anında bilinen değerler yerine konur |
+| `-fmerge-constants` | aynı sabit ve string literal tek kopyaya indirilir |
+| `-fif-conversion` | kısa `if` blokları dallanma yerine `cmov` komutuna çevrilir |
+| `-fomit-frame-pointer` | `rbp` yığın çerçevesi için ayrılmaz, genel amaçlı yazmaç olarak kullanılır |
+| `-finline-functions-called-once` | tek yerden çağrılan `static` fonksiyonlar inline edilir |
+
+Uç durum: `-fomit-frame-pointer` açık olduğunda `perf` ve benzeri profiler'lar stack'i geriye doğru çözemez; profil alınacak build'lerde `-fno-omit-frame-pointer` ile geri kapatılır.
+
+### `-O2`
+
+`-O1` kümesine, tüm fonksiyonu birden gören pahalı analizleri ekler. Üretim build'lerinin varsayılanıdır: kod boyutunu ciddi biçimde büyütmeden en geniş dönüşüm setini uygular.
+
+| Bayrak | Ne yapar |
+| :--- | :--- |
+| `-finline-functions` | küçük fonksiyonlar çağrı yerine gövdeleriyle değiştirilir |
+| `-fgcse`, `-ftree-pre` | common subexpression ve partial redundancy elimination: aynı hesap bir kez yapılır |
+| `-fstrict-aliasing` | farklı türden iki işaretçinin aynı adresi göstermediği varsayılır, yükleme tekrarı elenir |
+| `-fdevirtualize` | gerçek tür derleme anında biliniyorsa sanal çağrı doğrudan çağrıya döner |
+| `-foptimize-sibling-calls` | tail call'lar `call` yerine `jmp` ile yapılır, stack büyümez |
+| `-fschedule-insns2` | komutlar pipeline duraklamasını azaltacak sırayla dizilir |
+| `-freorder-blocks` | sık çalışan bloklar arka arkaya konur, soğuk bloklar sona atılır |
+
+Uç durum: `-fstrict-aliasing` bir varsayımdır, tetkik değildir; `float`'ı `int*` ile okumak gibi tür sınırını aşan `reinterpret_cast` kullanımları `-O2`'de uyarı vermeden yanlış sonuç üretir, doğru yol `std::memcpy` veya `std::bit_cast`'tir.
+
+### `-O3`
+
+`-O2` kümesine, kod boyutunu büyütme pahasına hız kovalayan döngü dönüşümlerini ekler. Kazanç büyük dizilerde gerçektir; küçük ve sık çağrılan kodda I-cache baskısı ve kurulum maliyeti yüzünden ters tepebilir.
+
+| Bayrak | Ne yapar |
+| :--- | :--- |
+| `-ftree-loop-vectorize` | döngü SIMD komutlarına çevrilir, bir komutta birden çok eleman işlenir |
+| `-floop-unroll-and-jam` | dış döngü açılır, iç döngü gövdeleri birleştirilir |
+| `-fpeel-loops`, `-fsplit-loops` | ilk veya düzensiz iterasyonlar döngüden ayrılır, kalan kısım düzgün hâle gelir |
+| `-funswitch-loops` | döngü içindeki değişmeyen `if` dışarı çıkarılır, döngü iki kopyaya bölünür |
+| `-fpredictive-commoning` | ardışık iterasyonların tekrar okuduğu değerler yazmaçta taşınır |
+| `-fipa-cp-clone` | sabit argümanla çağrılan fonksiyonun o argümana özel kopyası üretilir |
+
+Uç durum: `-O3` üretilen kodu birkaç katına çıkarabilir; hız kazancı ölçülmeden varsayılmaz, `-O2` ile karşılaştırmalı benchmark almadan `-O3`'e geçmek çoğu kod tabanında kayıptır.
+
+### `-Os` ve `-Oz`
+
+`-Os`, `-O2` kümesinden kod boyutunu büyüten dönüşümleri çıkarır: inline eşiği düşer, loop unrolling ve vectorization kapanır, fonksiyon hizalama dolgusu yapılmaz. `-Oz` aynı hedefi daha sert uygular ve boyut için hızdan taviz vermeyi kabul eder. Küçük kod tümüyle I-cache'e sığdığı için bu seviyeler bazı gerçek uygulamalarda `-O3`'ten hızlı çıkar.
+
+Uç durum: `-Os` embedded ve boyut kısıtlı hedefler için düşünülür, fakat cache'e sığma etkisi yüzünden sunucu tarafında da denenmeye değer; hangi seviyenin kazandığı ancak ölçümle belli olur.
+
+### `-Og`
+
+Hata ayıklamayı bozmayan optimizasyonları açar; `-O1`'e yakın bir küme uygular fakat değişkenlerin debugger'da görünürlüğünü ve satır bilgisini koruyanları seçer. Debug build'lerde `-O0` yerine önerilen seviyedir, çünkü kod makul hızda kalırken breakpoint ve değişken izleme çalışmaya devam eder.
+
+Uç durum: `-Og` bile bazı değişkenleri yazmaca aldığı için debugger `<optimized out>` gösterebilir; o değişken kritikse ilgili çeviri birimi `-O0` ile derlenir.
+
+### `-Ofast`
+
+`-O3` kümesine standart uyumunu bozan gevşetmeleri ekler: `-ffast-math`, `-fno-protect-parens` ve `-fallow-store-data-races`. Kayan nokta ifadelerinin yeniden gruplanmasına izin verdiği için `-O3`'ün vektörleştiremediği `float` indirgeme döngüleri burada SIMD'e çevrilir.
+
+Uç durum: `-ffast-math` `-ffinite-math-only` içerdiğinden derleyici `NaN` oluşmayacağını varsayar ve `x != x` tetkiki her zaman `false` döner; ayrıca bayrak, denormal sayıları sıfırlayan MXCSR bitini program başlangıcında açtığı için bu bayrakla derlenmemiş kütüphanelerin davranışını da değiştirir.
+
+### Seviye Dışı Bayraklar
+
+Seviye bayrakları hangi dönüşümlerin uygulanacağını seçer; bu grup ise dönüşümlerin hangi bilgiye dayanacağını belirler ve seviyeden bağımsız eklenir.
+
+| Bayrak | Ne yapar | Bedeli |
+| :--- | :--- | :--- |
+| `-march=native` | derleyen makinenin tüm komut kümesini (AVX2, AVX-512) kullanır | ikili başka işlemcide `SIGILL` ile çöker |
+| `-mtune=...` | komut kümesini değiştirmeden komut sırasını hedef işlemciye göre ayarlar | yanlış hedefte küçük verim kaybı |
+| `-flto` | optimizasyonu çeviri birimleri arasına taşır, farklı `.cpp` dosyaları birbirine inline olur | bağlama süresi ve bellek tüketimi artar |
+| `-fprofile-generate` / `-fprofile-use` | gerçek çalışma verisiyle hangi dalın sıcak olduğu ölçülür, yerleşim ona göre yapılır | iki aşamalı build; profil eskirse kod kötüleşir |
+
+Bir seviyenin o derleyici sürümünde tam olarak neyi açtığı `gcc -Q --help=optimizers -O2` ile listelenir; iki seviyenin farkını görmek için iki çıktının `diff`'i alınır.
+
+Uç durum: `-march=native` derleme yapılan makineye göre kod üretir; build sunucusu ile dağıtım sunucusunun işlemcisi farklıysa program ilk çalıştırmada `Illegal instruction` verir, taşınabilirlik gerektiğinde `-march=x86-64-v2` gibi taban bir seviye sabitlenip yalnızca `-mtune` serbest bırakılır.

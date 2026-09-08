@@ -38,6 +38,10 @@ Uç durum satırı zorunludur ve her zaman `Uç durum:` ile başlar. Tek cümled
 
 Anlatım Türkçedir ve kod içi yorum satırları dahil Türkçe karakterler (ç, ğ, ı, ö, ş, ü) eksiksiz kullanılır. Terim tercihleri ve çevrilmeyecek standart İngilizce kavramlar için kökteki [SOZLUK.md](./SOZLUK.md) belgesi esas alınır.
 
+Teknik kavramlar özgün İngilizce adlarıyla yazılır ve zorlama Türkçe karşılıklar üretilmez; `inlining`, `dead code elimination`, `loop unrolling`, `register spilling` gibi terimler olduğu gibi kullanılır. Yerleşik bir Türkçe karşılığı bulunanlar (işaretçi, yığın, derleyici, döngü) Türkçe yazılır. Bir terim ilk geçtiğinde parantez içinde çeviri verilmez; anlamı gerekiyorsa cümleyle açıklanır.
+
+Cümleler kısa ve doğrudan kurulur. Bir cümle iki satırı aşıyorsa veya iç içe yan cümlelerle uzuyorsa bölünür; okunabilirlik, süslü anlatımdan önce gelir.
+
 Anlatımda numaralandırılmış listelerden ve yoğun madde işaretlerinden kaçınılır. Paragraf akışı tercih edilir; sıralamanın kendisi bilgi taşıyorsa, örneğin derleme aşamaları anlatılıyorsa, liste kullanılabilir.
 
 ## Komit düzeni
