@@ -102,3 +102,17 @@ target_link_libraries(uygulama PRIVATE
 ```
 
 Uç durum: `--whole-archive` sonrasında `--no-whole-archive` bayrağı ile normal tarama moduna dönülmezse sonraki tüm kütüphaneler de gereksiz yere bütünüyle ikiliye gömülerek dosya boyutunu ve çakışma riskini artırır.
+
+### Derleme Zamanı Hata Tetkiki
+
+Kaynak koda yazılan anlamsız metinler, sözdizimi kurallarına aykırı yapılar ve bildirilmemiş tanımlayıcılar doğrudan derleme aşamasında sözdizimsel ve anlamsal analiz ön yüzü tarafından yakalanır. Hata tespit edildiğinde derleme hattı anında kesilir ve ikili dosya üretimi reddedilerek hatalı kodun çalışma zamanına geçmesi engellenir. Ön işlemci yalnızca metin manipülasyonu yaptığından bu anlamsal tetkikleri gerçekleştiremez; dil kurallarının geçerliliği derleyicinin soyut sözdizimi ağacı inşası sırasında tetkik edilir.
+
+```cpp
+void islem() {
+    asdfkkjlasdlkjsaf;      // Hata: bildirilmemiş tanımlayıcı (undeclared identifier)
+    int sayi = "metin";     // Hata: geçersiz tür dönüşümü
+}
+```
+
+Uç durum: `#ifdef` ile elenen kod blokları veya somutlaştırılmayan şablon gövdelerindeki anlamsal hatalar derleme hattına girmediği için derleme zamanında yakalanamaz.
+
