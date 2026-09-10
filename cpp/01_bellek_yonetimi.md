@@ -17,3 +17,19 @@ const char* p = kisa.data();    // doğrudan nesnenin yığın (stack) adresini 
 ```
 
 Uç durum: Taşıma işleminde heap tabanlı büyük string'ler yalnızca işaretçi devrederek O(1) sürede taşınırken, SSO modundaki kısa string'lerin karakter dizisi bayt bayt kopyalanmak zorundadır ve taşıma sonrası işaretçiler eski adrese bağlı kalıp geçersizleşebilir.
+
+### [[no_unique_address]]
+
+C++ dilinde her nesne bellekte en az 1 bayt yer kaplamak ve benzersiz bir adrese sahip olmak zorundadır. Durumsuz boş sınıflar veya ayırıcılar kompozisyon yoluyla sınıf içine üye eklendiğinde gereksiz bellek kullanımına ve dolgu baytlarına yol açar. `[[no_unique_address]]` özniteliği, ilgili boş üyenin ayrı bir adrese ihtiyaç duymadığını derleyiciye bildirerek üyenin 0 bayt yer kaplamasını sağlar. Böylece sınıf yerleşimi sıkılaşır ve boş taban sınıf optimizasyonu (EBO) kalıtıma ihtiyaç duyulmadan kompozisyon ile uygulanır.
+
+```cpp
+struct BosKural {}; // boyutu en az 1 bayt
+
+struct Hizmet {
+    int veri;                             // 4 bayt
+    [[no_unique_address]] BosKural kural; // 0 bayt olarak yerleşir
+}; // toplam nesne boyutu 8 bayt yerine 4 bayt olur
+```
+
+Uç durum: Aynı boş sınıf türünden iki ardışık üye `[[no_unique_address]]` ile işaretlendiğinde, dil kuralları gereği aynı türden iki alt nesne aynı adresi paylaşamayacağından derleyici ikinci üyeye en az 1 bayt yer ayırmak zorunda kalır.
+
