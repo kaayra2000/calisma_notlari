@@ -180,3 +180,38 @@ Seviye bayrakları hangi dönüşümlerin uygulanacağını seçer; bu grup ise 
 Bir seviyenin o derleyici sürümünde tam olarak neyi açtığı `gcc -Q --help=optimizers -O2` ile listelenir; iki seviyenin farkını görmek için iki çıktının `diff`'i alınır.
 
 Uç durum: `-march=native` derleme yapılan makineye göre kod üretir; build sunucusu ile dağıtım sunucusunun işlemcisi farklıysa program ilk çalıştırmada `Illegal instruction` verir, taşınabilirlik gerektiğinde `-march=x86-64-v2` gibi taban bir seviye sabitlenip yalnızca `-mtune` serbest bırakılır.
+
+### [[assume]]
+
+C++23 ile gelen `[[assume(koşul)]]` özniteliği, derleyiciye belirtilen ifadenin çalışma zamanında her zaman doğru olduğunu bildirir. Koşul için çalışma zamanında herhangi bir denetim kodu üretilmez; derleyici bu bilgiyi değer aralıklarını daraltmak, gereksiz sınır tetkiklerini kaldırmak ve döngüleri açmak için doğrudan bir optimizasyon girdisi olarak kullanır. Bildirilen varsayım çalışma zamanında yanlış çıkarsa program tanımsız davranışa (undefined behavior) sürüklenir.
+
+```cpp
+int bol(int x) {
+    [[assume(x > 0)]]; // x'in pozitif olduğu garanti edilir
+    return x / 2;      // derleyici negatif tetkiki ve işaret düzeltmesi üretmez
+}
+
+int dizi_erisim(const int* ptr, int i) {
+    [[assume(i >= 0 && i < 16)]];
+    return ptr[i];     // sınır tetkiki ve taşma koruması elenir
+}
+```
+
+Uç durum: `[[assume]]` içine yazılan koşul ifadesi derleyici tarafından yürütülmeyip sadece analiz edildiğinden ifade içindeki olası yan etkiler çöpe atılır ve asla çalışmaz; varsayımın ihlal edilmesi ise derleyiciyi yanıltarak tanımsız davranış üretir.
+
+### [[likely]] ve [[unlikely]]
+
+C++20 ile gelen `[[likely]]` ve `[[unlikely]]` öznitelikleri, koşullu ifadelerde (if, switch) hangi dallanmanın daha olası olduğunu derleyiciye bildirir. Derleyici bu ipuçlarını kullanarak sıcak (hot) kod yollarını bellekte ardışık dizer ve işlemcinin dal tahmincisini (branch predictor) yönlendirir. Soğuk (cold) kalan hata veya istisna blokları döngü gövdesinden uzağa taşınarak komut önbelleği (I-Cache) yerelliği korunur.
+
+```cpp
+void paket_isle(const char* veri, int uzunluk) {
+    if (veri != nullptr) [[likely]] {
+        hizli_ayristir(veri, uzunluk); // sık çalışan sıcak yol
+    } else [[unlikely]] {
+        hata_kaydi_olustur();          // nadir çalışan soğuk yol uzağa ötelenir
+    }
+}
+```
+
+Uç durum: Yanlış işaretlenen dallanmalar işlemcinin donanımsal dal tahmincisini yanıltarak önbellek ıskalamalarına (branch misprediction) ve soğuk blokların I-Cache'i gereksiz doldurmasına yol açar.
+
