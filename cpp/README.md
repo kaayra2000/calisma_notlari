@@ -8,4 +8,4 @@ Bu dizin, C++ mülakatlarında ve pratik geliştirmede karşılaşılan temel ka
 - [02_derleme_hatti_ve_on_islemci.md](./02_derleme_hatti_ve_on_islemci.md): derleme hattı aşamaları, #ifdef ile ön işleme ve if constexpr ayrımı.
 - [03_tasarim_kaliplari_ve_kayit_mekanizmalari.md](./03_tasarim_kaliplari_ve_kayit_mekanizmalari.md): nesne kayıt modelleri, explicit ve self-registration mimarileri.
 - [04_derleyici_optimizasyonlari_ve_yan_etkileri.md](./04_derleyici_optimizasyonlari_ve_yan_etkileri.md): optimizasyon bayrakları, döngü açma, I-cache baskısı ve SIMD maliyeti.
-- [05_senkronizasyon_ve_eszamanlilik.md](./05_senkronizasyon_ve_eszamanlilik.md): mutex, semaphore, sahiplik modelleri ve sinyalleşme mekanizmaları.
+- [05_senkronizasyon_ve_eszamanlilik.md](./05_senkronizasyon_ve_eszamanlilik.md): mutex ve semaphore farkları, kaynak kotası yönetimi, sinyalleşme ve olay bildirimi.
